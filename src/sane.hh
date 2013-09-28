@@ -3,6 +3,13 @@
 
 #include <cstdio>
 #include <stdint.h>
+#include <string>
+#include <iostream>
+#include <vector>
+using namespace std;
+
+#define show(x) \
+  cout << __FILE__ ":" << __LINE__ << ": " << #x << " = " << x << "\n"
 
 typedef int8_t i8;
 typedef int16_t i16;
