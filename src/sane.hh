@@ -2,10 +2,12 @@
 #define _SANE_HH
 
 #include <cstdio>
-#include <stdint.h>
+#include <cstdlib>
+#include <cstdint>
 #include <string>
 #include <iostream>
 #include <vector>
+#include <fstream>
 using namespace std;
 
 #define show(x) \
