@@ -23,8 +23,10 @@ class Tokenizer {
 
   public static int[] tokenize(String filePath) throws TokenizeError {
     int output[] = new int[81];
+    BufferedReader fp = null;
+            
     try {
-      BufferedReader fp = new BufferedReader(new InputStreamReader(new FileInputStream(filePath)));
+      fp = new BufferedReader(new InputStreamReader(new FileInputStream(filePath)));
 
       int numRead = 0;
       while (numRead < 81) {
@@ -36,6 +38,7 @@ class Tokenizer {
           output[numRead] = Character.digit(next, 10);
           numRead++;
         } else if (next == '-') {
+          output[numRead] = 0;
           numRead++;
         } else {
           throw new TokenizeError(filePath + ": Unexpected character " + (char) next + "!");
@@ -50,6 +53,10 @@ class Tokenizer {
       throw new TokenizeError("Sudoku File not found: " + filePath, ex);
     } catch (IOException ex) {
       throw new TokenizeError("Unexpected IOError: ", ex);
+    } finally {
+      if(fp != null) {
+        try { fp.close(); } catch (IOException ex) { throw new TokenizeError("Close error", ex); }
+      }
     }
 
     return output;
