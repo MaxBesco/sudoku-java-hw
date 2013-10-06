@@ -3,10 +3,6 @@ package sudoku;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- *
- * @author jfoley
- */
 public class SudokuCell {
   public static int ANY = 0x1ff;
 
@@ -23,18 +19,6 @@ public class SudokuCell {
     this.index = index;
     this.data = possibilities;
     assert((possibilities & ~ANY) == 0);
-  }
-
-  public int[] domain() {
-    int[] vals = new int[9];
-    int j = 0;
-    for (int i = 0; i < vals.length; i++) {
-      if ((data & mask(i)) > 0) {
-        vals[j] = i;
-        j++;
-      }
-    }
-    return vals;
   }
 
   public int count() {
