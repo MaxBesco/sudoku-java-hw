@@ -29,6 +29,14 @@ public class SudokuState {
     return true;
   }
   
+  public void eliminateIllegal(){
+    
+  }
+  
+  public SudokuCell ac3(){
+    return null;
+  }
+  
   public SudokuCell selectOpenMRV(){
     // num remaining values = {2,...,9}
     LinkedList[] remainingVals = new LinkedList[8];
