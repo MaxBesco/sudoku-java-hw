@@ -5,20 +5,19 @@ import java.util.Arrays;
 import java.util.LinkedList;
 
 public class SudokuState {
-  private int[] cells;
-  private final int TOTAL_CELLS = 81;
+  private SudokuCell[] cells;
+  public static final int TOTAL_CELLS = 81;
   
-  private SudokuState(int[] input) {
+  private SudokuState(SudokuCell[] input) {
     this.cells = input;
   }
   
   public static SudokuState fromDefinition(int[] input) {
-    int[] masks = new int[81];
-    for(int i=0; i<81; i++) {
-      int val = input[i];
-      masks[i] = (val == 0) ? ANY : mask(val);
+    SudokuCell[] cells = new SudokuCell[TOTAL_CELLS];
+    for(int i=0; i<TOTAL_CELLS; i++) {
+      cells[i] = SudokuCell.fromDefinition(i, input[i]);
     }
-    return new SudokuState(masks);
+    return new SudokuState(cells);
   }
 
   public boolean isComplete() {
@@ -44,7 +43,7 @@ public class SudokuState {
     for (int i = 0 ; i < remainingVals.length ; i ++)
       if (remainingVals[i].size() > 0) {
         int cellId = (Integer) remainingVals[i].get(0);
-        return new SudokuCell(cellId, cells[cellId]);
+        return cells[cellId];
       }
     throw new RuntimeException("did not find any open values");
   }
@@ -68,36 +67,26 @@ public class SudokuState {
     assert(min != -1);
     assert(minLeft <= 9 && minLeft >= 2);
     
-    return new SudokuCell(min, cells[min]);
+    return cells[min];
   }
 
   /**
    * Create a new SudokuState by playing i at index.
    */
   public SudokuState set(int index, int i) {
-    int[] newState = Arrays.copyOf(cells, cells.length);
-    newState[index] = mask(i+1);
+    SudokuCell[] newState = Arrays.copyOf(cells, cells.length);
+    newState[index] = newState[index].set(i);
     return new SudokuState(newState);
   }
-  public static int ANY = 0x1ff;
   
   public int count(int index) {
-    return Integer.bitCount(cells[index] & ANY);
+    return cells[index].count();
   }
 
-  public static int mask(int n) {
-    assert (n >= 1 && n <= 9);
-    return 1 << (n - 1);
-  }
-  
-  public static int invMask(int mask) {
-    return Integer.numberOfTrailingZeros(mask)+1;
-  }
 
   public SudokuCell get(int x, int y) {
     assert(x >= 0 && x < 9 && y >= 0 && y < 9);
-    int index = x + y*9;
-    return new SudokuCell(index, cells[index]);
+    return cells[x + y*9];
   }
   
   
@@ -179,11 +168,7 @@ public class SudokuState {
   void print(PrintStream out) {
     for (int i = 0; i < cells.length; i++) {
       out.print((i % 9 == 0) ? '\n' : ' ');
-      if(count(i) == 1) {
-        out.print(invMask(cells[i]));
-      } else {
-        out.print("?"+cells[i]);
-      }
+      out.print(cells[i]);
     }
     out.println();
   }
