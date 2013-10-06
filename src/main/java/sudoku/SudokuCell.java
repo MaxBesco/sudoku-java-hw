@@ -10,7 +10,9 @@ import java.util.List;
 public class SudokuCell {
   public static int ANY = 0x1ff;
 
+  /** bit set of integers from [1,9] */
   int data;
+  /** cell number [0,81) **/
   int index;
   
   public static SudokuCell fromDefinition(int index, int value) {
@@ -54,23 +56,22 @@ public class SudokuCell {
  * @param i
  * @return true if we have not yet eliminated i as a possible value for the cell.
  **/
-  boolean inDomain(int i) {
-    return (data & mask(i+1)) > 0;
+  public boolean inDomain(int i) {
+    return (data & mask(i)) > 0;
   }
   
   /** 
    * @return actual int (from 1-9) in cell
    */
-  int get() {
+  public int get() {
     assert(count()==1);
     return invMask(data);
   }
   
-  List<Integer> getDomain(){
+  public List<Integer> getDomain(){
     List<Integer> retval = new LinkedList<Integer>();
-    for (int i = 0 ; i < 9 ; i++) {
-      if (inDomain(i))
-        retval.add(i+1);
+    for (int i = 1 ; i <= 9 ; i++) {
+      if (inDomain(i)) retval.add(i);
     }
     return retval;
   }
@@ -84,8 +85,12 @@ public class SudokuCell {
     return Integer.numberOfTrailingZeros(mask)+1;
   }
 
-  SudokuCell set(int i) {
+  public SudokuCell set(int i) {
     return new SudokuCell(this.index, mask(i));
+  }
+  
+  public void remove(int i) {
+    this.data &= ~mask(i);
   }
   
   @Override
