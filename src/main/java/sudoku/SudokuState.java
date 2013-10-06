@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 
 public class SudokuState {
-  private SudokuCell[] cells;
+  public SudokuCell[] cells;
   public static final int TOTAL_CELLS = 81;
   
   private SudokuState(SudokuCell[] input) {
@@ -31,10 +31,6 @@ public class SudokuState {
   
   public void eliminateIllegal(){
     
-  }
-  
-  public SudokuCell ac3(){
-    return selectOpenMRV();
   }
   
   public SudokuCell selectOpenMRV(){
