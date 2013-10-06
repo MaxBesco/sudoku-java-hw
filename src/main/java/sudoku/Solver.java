@@ -39,6 +39,7 @@ public class Solver {
             unchanged = unchanged || inferenceMethods[j].inferenceMethod(start);
           if (unchanged) break;
         }
+        System.out.println("Success!");
       }
     } catch (InconsistencyException e) {
       return new Failure();
@@ -49,7 +50,7 @@ public class Solver {
     
     List<Integer> domain = var.getDomain();
     
-    assert(domain.size() <= 9);
+    assert(domain.size() <= 9 && domain.size() > 0);
     
     for (Integer i : domain) {
             

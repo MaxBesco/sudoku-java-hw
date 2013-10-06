@@ -81,9 +81,9 @@ public class SudokuState {
     SudokuCell[] newState = new SudokuCell[TOTAL_CELLS];
     for(int i=0; i<TOTAL_CELLS; i++) {
       if(i == index) {
-        newState[i] = cells[index].set(value);
+        newState[i] = cells[i].set(value);
       } else {
-        newState[i] = cells[index].clone();
+        newState[i] = cells[i].clone();
       }
     }
     return new SudokuState(newState);

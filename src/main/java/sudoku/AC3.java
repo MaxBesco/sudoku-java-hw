@@ -40,22 +40,23 @@ public class AC3 implements Inference{
         // loop over guts of grid to create constraints
         for (int comp1 = 0 ; comp1 < 9 ; comp1++)
           for (int comp2 = comp1 + 1 ; comp2 < 9 ; comp2++){
-            int x1 = (comp1 % 3) + gridx;
-            int y1 = (comp1 / 3) + gridy;
-            int x2 = (comp2 % 3) + gridx;
-            int y2 = (comp2 / 3) + gridy;
+            int x1 = (comp1 % 3) + gridx*3;
+            int y1 = (comp1 / 3) + gridy*3;
+            int x2 = (comp2 % 3) + gridx*3;
+            int y2 = (comp2 / 3) + gridy*3;
             arcQueue.add(new Pair(state.get(x1, y1), state.get(x2, y2)));
           }
+    // puts set into queue
     LinkedList<Pair> arcQ = new LinkedList<Pair>();
     for (Pair p : arcQueue)
       arcQ.add(p);
+    // core ac-3
     while (!arcQ.isEmpty()) {
       Pair p = arcQ.removeFirst();
-      if (revise(state, (SudokuCell) p.left, (SudokuCell) p.right))
+      if (revise(state, (SudokuCell) p.left, (SudokuCell) p.right) || revise(state, (SudokuCell) p.right, (SudokuCell) p.left)) {
         changed = true;
-      else if (revise(state, (SudokuCell) p.right, (SudokuCell) p.left))
-        changed = true;
-      else arcQ.addLast(p);
+        arcQ.addLast(p);
+      }
     }
     return changed;
   }
@@ -63,14 +64,18 @@ public class AC3 implements Inference{
   public boolean revise(SudokuState state, SudokuCell left, SudokuCell right) throws InconsistencyException{
     List<Integer> domainL = left.getDomain();
     List<Integer> domainR = right.getDomain();
-    if (domainL.isEmpty() || domainR.isEmpty())
+    if (right.index==20)
+            System.out.println(String.format("Cell %d domain : %s, Cell %d domain : %s."
+              , left.index, domainL
+              , right.index, domainR));
+    if (domainL.isEmpty() || domainR.isEmpty()) {
+      System.out.println(String.format("Cell %d domain : %s, Cell %d domain : %s."
+              , left.index, domainL
+              , right.index, domainR));
       throw new InconsistencyException();
+    }
     int target = domainL.get(0);
     if (domainL.size()==1 && domainR.contains(target)){
-      System.out.println(String.format("Cell %d domain : %s, Cell %d domain : %s. Removed %d from cell %d"
-              , left.index, domainL
-              , right.index, domainR
-              , target, right.index));
       right.remove(target);
       return true;
     } else return false;
