@@ -1,5 +1,6 @@
 package sudoku;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -45,19 +46,30 @@ public class Solver {
   
   public static void main(String[] args) 
           throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-    int[] data = Tokenizer.tokenize("data/puz-001.txt");
-    Tokenizer.print(System.out, data);
-    SudokuState prob1 = SudokuState.fromDefinition(data);
-    prob1.print(System.out);
+    //int[] data = Tokenizer.tokenize("data/puz-001.txt");
+    //Tokenizer.print(System.out, data);
+    //SudokuState prob1 = SudokuState.fromDefinition(data);
+    //prob1.print(System.out);
     Method selectOpenVariable = SudokuState.class.getMethod("selectOpenVariable");
     Method selectOpenMRV = SudokuState.class.getMethod("selectOpenMRV");
-    SearchResult sr1 = backtrackingSearch(prob1, 0, selectOpenVariable);
-    SearchResult sr2 = backtrackingSearch(prob1, 0, selectOpenMRV);
-    assert(sr1 instanceof Success);
-    assert(sr2 instanceof Success);
-    System.out.println(String.format("Number of guesses made: %d", ((Success) sr1).numGuesses));
-    ((Success) sr1).state.print(System.out);
-    System.out.println(String.format("Number of guesses made: %d", ((Success) sr2).numGuesses));
-    ((Success) sr2).state.print(System.out);
+    Method ac3 = SudokuState.class.getMethod("ac3");
+    //SearchResult sr1 = backtrackingSearch(prob1, 0, selectOpenVariable);
+    //SearchResult sr2 = backtrackingSearch(prob1, 0, selectOpenMRV);
+    System.out.println("Show the numbers of guesses made for each of the 16 instances in the above collection. Try both plain backtracking and backtacking with the MRV (minimum remaining values) heuristic. ");
+    System.out.println("plain backtracking, mrv, ac-3");
+    for (File file : (new File("data")).listFiles()){
+      int[] data = Tokenizer.tokenize(file.getAbsolutePath());
+      SudokuState prob = SudokuState.fromDefinition(data);
+      SearchResult sr1 = backtrackingSearch(prob, 0, selectOpenVariable);
+      SearchResult sr2 = backtrackingSearch(prob, 0, selectOpenMRV);
+      SearchResult sr3 = backtrackingSearch(prob, 0, ac3);
+      assert(sr1 instanceof Success);
+      assert(sr2 instanceof Success);
+      assert(sr3 instanceof Success);
+      System.out.println(String.format("%d,%d,%d"
+              , ((Success) sr1).numGuesses
+              , ((Success) sr2).numGuesses
+              , ((Success) sr3).numGuesses));
+    }
   }
 }
