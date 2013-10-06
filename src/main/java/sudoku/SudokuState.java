@@ -34,7 +34,7 @@ public class SudokuState {
   }
   
   public SudokuCell ac3(){
-    return null;
+    return selectOpenMRV();
   }
   
   public SudokuCell selectOpenMRV(){
