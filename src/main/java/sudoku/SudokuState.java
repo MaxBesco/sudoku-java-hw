@@ -2,9 +2,12 @@ package sudoku;
 
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.LinkedList;
 
 public class SudokuState {
   private int[] cells;
+  private final int TOTAL_CELLS = 81;
+  
   private SudokuState(int[] input) {
     this.cells = input;
   }
@@ -26,12 +29,32 @@ public class SudokuState {
     }
     return true;
   }
+  
+  public SudokuCell selectOpenMRV(){
+    // num remaining values = {2,...,9}
+    LinkedList[] remainingVals = new LinkedList[8];
+    for (int i = 0 ; i < remainingVals.length ; i++)
+      remainingVals[i] = new LinkedList<Integer>();
+    for (int i=0; i<TOTAL_CELLS; i++) {
+      int left = count(i);
+      if (left==1)
+        continue;
+      else remainingVals[left-2].add(i);
+    }
+    for (int i = 0 ; i < remainingVals.length ; i ++)
+      if (remainingVals[i].size() > 0) {
+        int cellId = (Integer) remainingVals[i].get(0);
+        return new SudokuCell(cellId, cells[cellId]);
+      }
+    throw new RuntimeException("did not find any open values");
+  }
 
   public SudokuCell selectOpenVariable() {
     assert(!isComplete());
     int min = -1;
     int minLeft = 10;
-    for(int i=0; i<81; i++) {
+    // loop over total cells, find out who is open
+    for(int i=0; i<TOTAL_CELLS; i++) {
       int left = count(i);
       if(left == 1) {
         continue;

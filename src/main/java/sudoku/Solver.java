@@ -1,5 +1,7 @@
 package sudoku;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import sudoku.SudokuState.*;
 
@@ -18,34 +20,13 @@ public class Solver {
     }
   }
   
-  public static SearchResult backtrackingSearch(SudokuState start) {
-    if(start.isComplete()) return new Success(start);
+  public static SearchResult backtrackingSearch(SudokuState start, int guesses, Method getOpen) 
+          throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+    
+    if(start.isComplete()) return new Success(start, guesses);
     
     // take a cell that's not done
-    SudokuCell var = start.selectOpenVariable();
-    
-    // for all possibilities
-    for(int i=0; i<9; i++) {
-      // that are still possible
-      if(!var.inDomain(i)) continue;
-      
-      // calculate new board
-      SudokuState next = start.set(var.index, i);
-      if(!next.isConsistent()) continue;
-      
-      SearchResult sr = backtrackingSearch(next);
-      if(sr instanceof Success) return sr;
-    }
-    
-    return new Failure();
-  }
-  
-  public static SearchResult backtrackingSearch(SudokuState start, int guesses) {
-    
-    if(start.isComplete()) return new Success(start);
-    
-    // take a cell that's not done
-    SudokuCell var = start.selectOpenVariable();
+    SudokuCell var = (SudokuCell) getOpen.invoke(start);
     
     List<Integer> domain = var.getDomain();
     
@@ -55,20 +36,28 @@ public class Solver {
       SudokuState next = start.set(var.index, i);
       if(!next.isConsistent()) continue;
       
-      SearchResult sr = backtrackingSearch(next, guesses + domain.size() - 1);
+      SearchResult sr = backtrackingSearch(next, guesses + domain.size() - 1, getOpen);
       if(sr instanceof Success) return sr;
 
     }
     return new Failure();
   }
   
-  public static void main(String[] args) {
+  public static void main(String[] args) 
+          throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
     int[] data = Tokenizer.tokenize("data/puz-001.txt");
     Tokenizer.print(System.out, data);
     SudokuState prob1 = SudokuState.fromDefinition(data);
     prob1.print(System.out);
-    SearchResult sr = backtrackingSearch(prob1);
-    assert(sr instanceof Success);
-    ((Success) sr).state.print(System.out);
+    Method selectOpenVariable = SudokuState.class.getMethod("selectOpenVariable");
+    Method selectOpenMRV = SudokuState.class.getMethod("selectOpenMRV");
+    SearchResult sr1 = backtrackingSearch(prob1, 0, selectOpenVariable);
+    SearchResult sr2 = backtrackingSearch(prob1, 0, selectOpenMRV);
+    assert(sr1 instanceof Success);
+    assert(sr2 instanceof Success);
+    System.out.println(String.format("Number of guesses made: %d", ((Success) sr1).numGuesses));
+    ((Success) sr1).state.print(System.out);
+    System.out.println(String.format("Number of guesses made: %d", ((Success) sr2).numGuesses));
+    ((Success) sr2).state.print(System.out);
   }
 }
