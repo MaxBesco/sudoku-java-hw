@@ -20,6 +20,11 @@ public class SudokuCell {
     this.data = possibilities;
     assert((possibilities & ~ANY) == 0);
   }
+  
+  @Override
+  public SudokuCell clone() {
+    return new SudokuCell(this.index, this.data);
+  }
 
   public int count() {
     return Integer.bitCount(data);

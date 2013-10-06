@@ -75,11 +75,17 @@ public class SudokuState {
   }
 
   /**
-   * Create a new SudokuState by playing i at index.
+   * Create a new SudokuState by playing value at index.
    */
-  public SudokuState set(int index, int i) {
-    SudokuCell[] newState = Arrays.copyOf(cells, cells.length);
-    newState[index] = newState[index].set(i);
+  public SudokuState set(int index, int value) {
+    SudokuCell[] newState = new SudokuCell[TOTAL_CELLS];
+    for(int i=0; i<TOTAL_CELLS; i++) {
+      if(i == index) {
+        newState[i] = cells[index].set(value);
+      } else {
+        newState[i] = cells[index].clone();
+      }
+    }
     return new SudokuState(newState);
   }
   
@@ -90,7 +96,9 @@ public class SudokuState {
 
   public SudokuCell get(int x, int y) {
     assert(x >= 0 && x < 9 && y >= 0 && y < 9);
-    return cells[x + y*9];
+    SudokuCell at = cells[x + y*9];
+    assert(at != null);
+    return at;
   }
   
   
