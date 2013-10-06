@@ -64,14 +64,10 @@ public class AC3 implements Inference{
   public boolean revise(SudokuState state, SudokuCell left, SudokuCell right) throws InconsistencyException{
     List<Integer> domainL = left.getDomain();
     List<Integer> domainR = right.getDomain();
-    if (right.index==20)
-            System.out.println(String.format("Cell %d domain : %s, Cell %d domain : %s."
-              , left.index, domainL
-              , right.index, domainR));
     if (domainL.isEmpty() || domainR.isEmpty()) {
-      System.out.println(String.format("Cell %d domain : %s, Cell %d domain : %s."
-              , left.index, domainL
-              , right.index, domainR));
+//      System.out.println(String.format("Cell %d domain : %s, Cell %d domain : %s."
+//              , left.index, domainL
+//              , right.index, domainR));
       throw new InconsistencyException();
     }
     int target = domainL.get(0);

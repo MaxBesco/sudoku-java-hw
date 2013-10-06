@@ -26,24 +26,23 @@ public class Solver {
   public static SearchResult backtrackingSearch(SudokuState start, int guesses, Method getOpen, Inference[] inferenceMethods) 
           throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InconsistencyException {
     
-    if(start.isComplete()) return new Success(start, guesses);
-    if (inferenceMethods.length!=0)
-      start.print(System.out);
-      
-    // else apply inference methods
+    //apply inference methods
     try {
       if (inferenceMethods.length!=0) {
         while (true){
-          boolean unchanged = false;
+          //start.print(System.out);
+          boolean changed = false;
           for (int j = 0 ; j < inferenceMethods.length ; j++)
-            unchanged = unchanged || inferenceMethods[j].inferenceMethod(start);
-          if (unchanged) break;
+            changed = changed || inferenceMethods[j].inferenceMethod(start);
+          if (!changed) break;
         }
-        System.out.println("Success!");
+        //System.out.println("Success!");
       }
     } catch (InconsistencyException e) {
       return new Failure();
     }
+    
+    if(start.isComplete()) return new Success(start, guesses);
     
     // take a cell that's not done
     SudokuCell var = (SudokuCell) getOpen.invoke(start);
