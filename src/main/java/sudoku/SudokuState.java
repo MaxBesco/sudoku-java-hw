@@ -2,7 +2,10 @@ package sudoku;
 
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 public class SudokuState {
   public SudokuCell[] cells;
@@ -29,10 +32,40 @@ public class SudokuState {
     return true;
   }
   
-  public void eliminateIllegal(){
+  public List<Integer> legalMoves(int id) {
+    List<Integer> out = new LinkedList<Integer>();
+    SudokuCell cell = cells[id];
+    int row = cell.y();
+    int col = cell.x();
     
+    assert(!cell.done()) : "legalMoves called on finished cell";
+    
+    int sx = col/3;
+    int sy = row/3;
+    
+    // look at all neighbors and build a list of remaining legal moves
+    Set<Integer> found = new HashSet<Integer>();
+    for(int i=0; i<9; i++) {
+      SudokuCell[] neighbors = { get(i,row), get(col, i), get(sx*3 + i%3, sy*3 + i/3) };
+      for(SudokuCell neighbor : neighbors) {
+        if(neighbor.done()) {
+          found.add(neighbor.get());
+        }
+      }
+    }
+    
+    for(int i=1; i<=9; i++) {
+      if(!found.contains(i))
+        out.add(i);
+    }
+    // return the legal moves as a list
+    return out;
   }
   
+  /**
+   * MRV must calculate for each cell the number of remaining legal moves
+   * @return 
+   */
   public SudokuCell selectOpenMRV(){
     // num remaining values = {2,...,9}
     LinkedList[] remainingVals = new LinkedList[8];
@@ -105,7 +138,7 @@ public class SudokuState {
   private boolean distinct(SudokuCell[] row) {
     boolean found[] = new boolean[9];
     for(int i=0; i<9; i++) {
-      if(row[i].count() == 1) {
+      if(row[i].done()) {
         int index = row[i].get()-1;
         if(found[index]) {
           return false; // double thing in this set
@@ -173,8 +206,6 @@ public class SudokuState {
     });
     
     assert(!st.isConsistent());
-    
-    
   }
 
   void print(PrintStream out) {
