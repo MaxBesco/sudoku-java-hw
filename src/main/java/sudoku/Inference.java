@@ -10,7 +10,7 @@ package sudoku;
  * 
  */
 public interface Inference {
-    public static class Pair{
+    public static class Pair {
       public SudokuCell left;
       public SudokuCell right;
       public Pair(SudokuCell l, SudokuCell r){
@@ -23,9 +23,13 @@ public interface Inference {
       }
       @Override
       public boolean equals(Object op){
-        Pair p = (Pair) op;
-        return p.left.index==left.index && p.right.index==right.index;
+        return equals((Pair) op);
       }
+      
+      public boolean equals(Pair op){
+        return op.left.index==left.index && op.right.index==right.index;
+      }
+      
     }
     public boolean inferenceMethod(SudokuState state) throws InconsistencyException;
 }
