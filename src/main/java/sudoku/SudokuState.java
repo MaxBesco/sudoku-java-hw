@@ -55,7 +55,7 @@ public class SudokuState {
     }
     
     for(int i=1; i<=9; i++) {
-      if(!found.contains(i))
+      if(!found.contains(i) && cell.inDomain(i))
         out.add(i);
     }
     // return the legal moves as a list
@@ -73,9 +73,7 @@ public class SudokuState {
     // count remaining moves, put in bucket
     for (int i=0; i<TOTAL_CELLS; i++) {
       int left = legalMoves(i).size();
-      if(left == 1 && cells[i].done()) {
-        continue;
-      }
+      if(left == 1 && cells[i].done()) continue;
       remainingVals[left] = cells[i];
     }
     // find first nonempty bucket and return that
