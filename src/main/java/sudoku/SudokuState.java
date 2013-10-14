@@ -32,6 +32,7 @@ public class SudokuState {
     return true;
   }
   
+  /** Returns the current cell as well... */
   public Set<SudokuCell> neighbors(int index) {
     List<SudokuCell> neighbors = new LinkedList<SudokuCell>();
     SudokuCell cell = cells[index];

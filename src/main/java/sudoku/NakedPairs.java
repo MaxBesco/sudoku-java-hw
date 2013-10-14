@@ -20,7 +20,7 @@ public class NakedPairs implements Inference {
       for(int y=0; y<9; y++) {
         block[y] = state.get(x,y);
       }
-      if(findPairs(block)) return true;
+      if(findPairs(state, block)) return true;
     }
     
     // check rows
@@ -28,7 +28,7 @@ public class NakedPairs implements Inference {
       for(int x=0; x<9; x++) {
         block[x] = state.get(x,y);
       }
-      if(findPairs(block)) return true;
+      if(findPairs(state, block)) return true;
     }
     
     // check super blocks
@@ -40,14 +40,14 @@ public class NakedPairs implements Inference {
             block[x+y*3] = state.get(sx*3+x, sy*3+y);
           }
         }
-        if(findPairs(block)) return true;
+        if(findPairs(state, block)) return true;
       }
     }
     
     return changed;
   }
 
-  private boolean findPairs(SudokuCell[] block) {
+  private boolean findPairs(SudokuState state, SudokuCell[] block) throws InconsistencyException {
     ArrayList<SudokuCell> pairs = new ArrayList<SudokuCell>();
     for(SudokuCell x : block) {
       if(x.done()) continue;
@@ -62,8 +62,7 @@ public class NakedPairs implements Inference {
         SudokuCell b = pairs.get(j);
         
         if(a.domain == b.domain) {
-          eliminateUsingPair(a,b);
-          return false; //todo
+          return eliminateUsingPair(state, block, a,b);
         }
       }
     }
@@ -71,8 +70,9 @@ public class NakedPairs implements Inference {
     return false;
   }
 
-  private void eliminateUsingPair(SudokuCell a, SudokuCell b) {
-    Set<Integer> dom = new HashSet();
+  private boolean eliminateUsingPair(SudokuState state, SudokuCell block[], SudokuCell a, SudokuCell b) throws InconsistencyException {
+    boolean changed = false;
+    Set<Integer> dom = new HashSet<Integer>();
     for(int i=1; i<=9; i++) {
       if(a.inDomain(i) && b.inDomain(i)) {
         dom.add(i);
@@ -80,9 +80,18 @@ public class NakedPairs implements Inference {
     }
     
     for(int x : dom) {
-      
+      for(SudokuCell neighbor : block) {
+        if(neighbor.index == a.index || neighbor.index == b.index)
+          continue;
+        if(neighbor.inDomain(x)) {
+          if(neighbor.count() == 1)
+            throw new InconsistencyException();
+          neighbor.remove(x);
+          changed = true;
+        }
+      }
     }
-    //System.out.println("eliminateUsingPair");
+    return changed;
   }
   
 }
