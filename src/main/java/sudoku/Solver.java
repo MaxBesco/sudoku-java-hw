@@ -23,6 +23,7 @@ public class Solver {
     }
   }
   
+  static boolean debug;
   static int guesses;
   
   public static SearchResult backtrackingSearch(SudokuState start, boolean first, Method getOpen, Inference[] inferenceMethods) 
@@ -60,6 +61,10 @@ public class Solver {
     if(domain.isEmpty())
       return new Failure();
     
+    if(debug && domain.size() > 1) {
+      start.print(System.out);
+    }
+    
     guesses += domain.size() - 1;
     assert(domain.size() <= 9 && domain.size() > 0);
     for (Integer i : domain) {    
@@ -78,7 +83,7 @@ public class Solver {
           throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InconsistencyException {
     Method selectOpenVariable = SudokuState.class.getMethod("selectOpenVariable");
     Method selectOpenMRV = SudokuState.class.getMethod("selectOpenMRV");
-    Inference[] inferenceMethods = {new AC3()};
+    Inference[] inferenceMethods = {new AC3(), new NakedPairs()};
     System.out.println("Show the numbers of guesses made for each of the 16 instances in the above collection. Try both plain backtracking and backtacking with the MRV (minimum remaining values) heuristic. ");
     System.out.println("plain backtracking, mrv, ac-3-plain, ac3-mrv");
     
@@ -106,5 +111,8 @@ public class Solver {
               , ((Success) sr4).numGuesses
               ));
     }
+    
+  debug = true;
+  SearchResult sr4 = backtrackingSearch(SudokuState.fromDefinition(Tokenizer.tokenize("data/puz-062.txt")), true, selectOpenMRV, inferenceMethods);
   }
 }

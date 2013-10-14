@@ -32,6 +32,24 @@ public class SudokuState {
     return true;
   }
   
+  public Set<SudokuCell> neighbors(int index) {
+    List<SudokuCell> neighbors = new LinkedList<SudokuCell>();
+    SudokuCell cell = cells[index];
+    
+    int row = cell.y();
+    int col = cell.x();
+        
+    int sx = col/3;
+    int sy = row/3;
+    for(int i=0; i<9; i++) {
+      neighbors.add(get(i,row));
+      neighbors.add(get(col,i));
+      neighbors.add(get(sx*3 + i%3, sy*3 + i/3));
+    }
+    
+    return new HashSet<SudokuCell>(neighbors);
+  }
+  
   public List<Integer> legalMoves(int id) {
     SudokuCell cell = cells[id];
     if(cell.done()) return Arrays.asList(new Integer[] { cell.get() });

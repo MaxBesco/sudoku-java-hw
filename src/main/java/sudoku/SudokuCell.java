@@ -83,6 +83,18 @@ public class SudokuCell {
   }
   
   @Override
+  public boolean equals(Object other) {
+    assert(other instanceof SudokuCell);
+    SudokuCell c = (SudokuCell) other;
+    return c.index == index;
+  }
+
+  @Override
+  public int hashCode() {
+    return (new Integer(this.index)).hashCode();
+  }
+  
+  @Override
   public String toString() {
     if(count() == 1) {
       return Integer.toString(invMask(this.domain));
