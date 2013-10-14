@@ -32,7 +32,7 @@ public class XWing implements Inference {
       SudokuCell a = p.left;
       SudokuCell b = p.right;
       for (PairWithNum pp : getAllExclusiveRowEntries(state)) {
-        if (!pp.equals(a) && pp.matchedNum == matchedNum) {
+        if (!pp.equals(p) && pp.matchedNum == matchedNum) {
           // delete matchedNum from all of the other cells in their shared columns
           int col1 = a.y();
           int col2 = b.y();
@@ -52,7 +52,7 @@ public class XWing implements Inference {
       SudokuCell a = p.left;
       SudokuCell b = p.right;
       for (PairWithNum pp : getAllExclusiveRowEntries(state)) {
-        if (!pp.equals(a) && pp.matchedNum == matchedNum) {
+        if (!pp.equals(p) && pp.matchedNum == matchedNum) {
           // delete matchedNum from all of the other cells in their shared columns
           int row1 = a.x();
           int row2 = b.x();
@@ -112,5 +112,4 @@ public class XWing implements Inference {
     return matchedPairs;
   }
   
-}
 }
