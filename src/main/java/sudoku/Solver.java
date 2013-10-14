@@ -23,13 +23,17 @@ public class Solver {
     }
   }
   
-  public static SearchResult backtrackingSearch(SudokuState start, int guesses, Method getOpen, Inference[] inferenceMethods) 
+  static int guesses;
+  
+  public static SearchResult backtrackingSearch(SudokuState start, boolean first, Method getOpen, Inference[] inferenceMethods) 
           throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InconsistencyException {
-    
+    if(first) { // reset guesses
+      guesses = 0;
+    }
     //apply inference methods
     try {
       if (inferenceMethods.length!=0) {
-        while (true){
+        while (true) {
           //start.print(System.out);
           boolean changed = false;
           for (int j = 0 ; j < inferenceMethods.length ; j++)
@@ -42,22 +46,28 @@ public class Solver {
       return new Failure();
     }
     
-    if(start.isComplete()) return new Success(start, guesses);
+    if(start.isComplete()) {
+      int myGuesses = guesses;
+      guesses = 0;
+      return new Success(start, myGuesses);
+    }
     
-    // take a cell that's not done
+    // take the next cell
     SudokuCell var = (SudokuCell) getOpen.invoke(start);
     
-    List<Integer> domain = var.getDomain();
+    // in MRV an empty domain has no legal moves, so we backtrack quicker
+    List<Integer> domain = start.legalMoves(var.index);
+    if(domain.isEmpty())
+      return new Failure();
     
+    guesses += domain.size() - 1;
     assert(domain.size() <= 9 && domain.size() > 0);
-    
-    for (Integer i : domain) {
-            
+    for (Integer i : domain) {    
       // calculate new board
       SudokuState next = start.set(var.index, i);
       if(!next.isConsistent()) continue;
       
-      SearchResult sr = backtrackingSearch(next, guesses + domain.size() - 1, getOpen, inferenceMethods);
+      SearchResult sr = backtrackingSearch(next, false, getOpen, inferenceMethods);
       if(sr instanceof Success) return sr;
     }
     
@@ -66,10 +76,6 @@ public class Solver {
   
   public static void main(String[] args) 
           throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InconsistencyException {
-    //int[] data = Tokenizer.tokenize("data/puz-001.txt");
-    //Tokenizer.print(System.out, data);
-    //SudokuState prob1 = SudokuState.fromDefinition(data);
-    //prob1.print(System.out);
     Method selectOpenVariable = SudokuState.class.getMethod("selectOpenVariable");
     Method selectOpenMRV = SudokuState.class.getMethod("selectOpenMRV");
     Inference[] inferenceMethods = {new AC3()};
@@ -79,13 +85,15 @@ public class Solver {
     List<File> testFiles = Arrays.asList((new File("data")).listFiles());
     Collections.sort(testFiles);
     
+    Inference[] justRules = {};
+    
     for (File file : testFiles){
       int[] data = Tokenizer.tokenize(file.getAbsolutePath());
       SudokuState prob = SudokuState.fromDefinition(data);
-      SearchResult sr1 = backtrackingSearch(prob, 0, selectOpenVariable, new Inference[0]);
-      SearchResult sr2 = backtrackingSearch(prob, 0, selectOpenMRV, new Inference[0]);
-      SearchResult sr3 = backtrackingSearch(prob, 0, selectOpenVariable, inferenceMethods);
-      SearchResult sr4 = backtrackingSearch(prob, 0, selectOpenMRV, inferenceMethods);
+      SearchResult sr1 = backtrackingSearch(prob, true, selectOpenVariable, justRules);
+      SearchResult sr2 = backtrackingSearch(prob, true, selectOpenMRV, justRules);
+      SearchResult sr3 = backtrackingSearch(prob, true, selectOpenVariable, inferenceMethods);
+      SearchResult sr4 = backtrackingSearch(prob, true, selectOpenMRV, inferenceMethods);
       assert(sr1 instanceof Success);
       assert(sr2 instanceof Success);
       assert(sr3 instanceof Success);

@@ -7,7 +7,7 @@ public class SudokuCell {
   public static int ANY = 0x1ff;
 
   /** bit set of integers from [1,9] */
-  int data;
+  int domain;
   /** cell number [0,81) **/
   int index;
   
@@ -17,17 +17,17 @@ public class SudokuCell {
   
   private SudokuCell(int index, int possibilities) {
     this.index = index;
-    this.data = possibilities;
+    this.domain = possibilities;
     assert((possibilities & ~ANY) == 0);
   }
   
   @Override
   public SudokuCell clone() {
-    return new SudokuCell(this.index, this.data);
+    return new SudokuCell(this.index, this.domain);
   }
 
   public int count() {
-    return Integer.bitCount(data);
+    return Integer.bitCount(domain);
   }
 
   public boolean done() {
@@ -46,7 +46,7 @@ public class SudokuCell {
  * @return true if we have not yet eliminated i as a possible value for the cell.
  **/
   public boolean inDomain(int i) {
-    return (data & mask(i)) > 0;
+    return (domain & mask(i)) > 0;
   }
   
   /** 
@@ -54,7 +54,7 @@ public class SudokuCell {
    */
   public int get() {
     assert(count()==1);
-    return invMask(data);
+    return invMask(domain);
   }
   
   public List<Integer> getDomain(){
@@ -79,15 +79,15 @@ public class SudokuCell {
   }
   
   public void remove(int i) {
-    this.data &= ~mask(i);
+    this.domain &= ~mask(i);
   }
   
   @Override
   public String toString() {
     if(count() == 1) {
-      return Integer.toString(invMask(this.data));
+      return Integer.toString(invMask(this.domain));
     } else {
-      return "?0b"+Integer.toString(this.data,2);
+      return "?";
     }
   }
 }

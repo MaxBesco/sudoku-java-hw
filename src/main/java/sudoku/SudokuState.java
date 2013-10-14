@@ -2,7 +2,10 @@ package sudoku;
 
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 public class SudokuState {
   public SudokuCell[] cells;
@@ -22,33 +25,65 @@ public class SudokuState {
 
   public boolean isComplete() {
     for (int i = 0; i < 81; i++) {
-      if (count(i) != 1) {
+      if (!cells[i].done()) {
         return false;
       }
     }
     return true;
   }
   
-  public void eliminateIllegal(){
+  public List<Integer> legalMoves(int id) {
+    SudokuCell cell = cells[id];
+    if(cell.done()) return Arrays.asList(new Integer[] { cell.get() });
     
+    List<Integer> out = new LinkedList<Integer>();
+    int row = cell.y();
+    int col = cell.x();
+        
+    int sx = col/3;
+    int sy = row/3;
+    
+    // look at all neighbors and build a list of remaining legal moves
+    Set<Integer> found = new HashSet<Integer>();
+    for(int i=0; i<9; i++) {
+      SudokuCell[] neighbors = { get(i,row), get(col, i), get(sx*3 + i%3, sy*3 + i/3) };
+      for(SudokuCell neighbor : neighbors) {
+        if(neighbor.done()) {
+          found.add(neighbor.get());
+        }
+      }
+    }
+    
+    for(int i=1; i<=9; i++) {
+      if(!found.contains(i) && cell.inDomain(i))
+        out.add(i);
+    }
+    // return the legal moves as a list
+    return out;
   }
   
+  /**
+   * MRV must calculate for each cell the number of remaining legal moves
+   * @return 
+   */
   public SudokuCell selectOpenMRV(){
-    // num remaining values = {2,...,9}
-    LinkedList[] remainingVals = new LinkedList[8];
-    for (int i = 0 ; i < remainingVals.length ; i++)
-      remainingVals[i] = new LinkedList<Integer>();
+    // a cell for each number of remaining legal moves [0..9]
+    SudokuCell[] remainingVals = new SudokuCell[10];
+
+    // count remaining moves, put in bucket
     for (int i=0; i<TOTAL_CELLS; i++) {
-      int left = count(i);
-      if (left==1)
-        continue;
-      else remainingVals[left-2].add(i);
+      int left = legalMoves(i).size();
+      if(left == 1 && cells[i].done()) continue;
+      remainingVals[left] = cells[i];
     }
-    for (int i = 0 ; i < remainingVals.length ; i ++)
-      if (remainingVals[i].size() > 0) {
-        int cellId = (Integer) remainingVals[i].get(0);
-        return cells[cellId];
+    // find first nonempty bucket and return that
+    for(int i=0; i<remainingVals.length; i++) {
+      SudokuCell cur = remainingVals[i];
+      if(cur != null) {
+        return cur;
       }
+    }
+    print(System.err);
     throw new RuntimeException("did not find any open values");
   }
 
@@ -58,20 +93,10 @@ public class SudokuState {
     int minLeft = 10;
     // loop over total cells, find out who is open
     for(int i=0; i<TOTAL_CELLS; i++) {
-      int left = count(i);
-      if(left == 1) {
-        continue;
-      }
-      if(left < minLeft) {
-        minLeft = left;
-        min = i;
-      }
+      if(cells[i].done()) continue;
+      return cells[i];
     }
-        
-    assert(min != -1);
-    assert(minLeft <= 9 && minLeft >= 2);
-    
-    return cells[min];
+    throw new RuntimeException("Shouldn't ask for an open variable on a finished sudoku...");
   }
 
   /**
@@ -105,7 +130,7 @@ public class SudokuState {
   private boolean distinct(SudokuCell[] row) {
     boolean found[] = new boolean[9];
     for(int i=0; i<9; i++) {
-      if(row[i].count() == 1) {
+      if(row[i].done()) {
         int index = row[i].get()-1;
         if(found[index]) {
           return false; // double thing in this set
@@ -173,8 +198,6 @@ public class SudokuState {
     });
     
     assert(!st.isConsistent());
-    
-    
   }
 
   void print(PrintStream out) {
