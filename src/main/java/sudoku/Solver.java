@@ -83,9 +83,11 @@ public class Solver {
           throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InconsistencyException {
     Method selectOpenVariable = SudokuState.class.getMethod("selectOpenVariable");
     Method selectOpenMRV = SudokuState.class.getMethod("selectOpenMRV");
-    Inference[] inferenceMethods = {new AC3(), new NakedPairs()};
+    //Inference[] inferenceMethods = {new AC3(), new NakedPairs()};
+    Inference[] justAC3 = {new AC3()};
+    Inference[] allInference = {new AC3(), new XWing()};
     System.out.println("Show the numbers of guesses made for each of the 16 instances in the above collection. Try both plain backtracking and backtacking with the MRV (minimum remaining values) heuristic. ");
-    System.out.println("plain backtracking, mrv, ac-3-plain, ac3-mrv");
+    System.out.println("plain backtracking, mrv, ac-3-plain, ac3-mrv, allinf-plain, allinf-mrv");
     
     List<File> testFiles = Arrays.asList((new File("data")).listFiles());
     Collections.sort(testFiles);
@@ -97,22 +99,28 @@ public class Solver {
       SudokuState prob = SudokuState.fromDefinition(data);
       SearchResult sr1 = backtrackingSearch(prob, true, selectOpenVariable, justRules);
       SearchResult sr2 = backtrackingSearch(prob, true, selectOpenMRV, justRules);
-      SearchResult sr3 = backtrackingSearch(prob, true, selectOpenVariable, inferenceMethods);
-      SearchResult sr4 = backtrackingSearch(prob, true, selectOpenMRV, inferenceMethods);
+      SearchResult sr3 = backtrackingSearch(prob, true, selectOpenVariable, justAC3);
+      SearchResult sr4 = backtrackingSearch(prob, true, selectOpenMRV, justAC3);
+      //SearchResult sr5 = backtrackingSearch(prob, true, selectOpenVariable, allInference);
+      //SearchResult sr6 = backtrackingSearch(prob, true, selectOpenMRV, allInference);
       assert(sr1 instanceof Success);
       assert(sr2 instanceof Success);
       assert(sr3 instanceof Success);
       assert(sr4 instanceof Success);
-      System.out.println(String.format("%s\t%d,%d,%d,%d"
+      //assert(sr5 instanceof Success);
+      //assert(sr6 instanceof Success);
+      System.out.println(String.format("%s\t%d,%d,%d,%d,%d,%d"
               , file.getName()
               , ((Success) sr1).numGuesses
               , ((Success) sr2).numGuesses
               , ((Success) sr3).numGuesses
               , ((Success) sr4).numGuesses
+              , 0//((Success) sr5).numGuesses
+              , 0//((Success) sr6).numGuesses
               ));
     }
     
   debug = true;
-  SearchResult sr4 = backtrackingSearch(SudokuState.fromDefinition(Tokenizer.tokenize("data/puz-062.txt")), true, selectOpenMRV, inferenceMethods);
+  SearchResult sr4 = backtrackingSearch(SudokuState.fromDefinition(Tokenizer.tokenize("data/puz-062.txt")), true, selectOpenMRV, justAC3);
   }
 }
