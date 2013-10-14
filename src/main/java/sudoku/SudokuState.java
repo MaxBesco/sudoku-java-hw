@@ -25,7 +25,7 @@ public class SudokuState {
 
   public boolean isComplete() {
     for (int i = 0; i < 81; i++) {
-      if (count(i) != 1) {
+      if (!cells[i].done()) {
         return false;
       }
     }
@@ -33,13 +33,13 @@ public class SudokuState {
   }
   
   public List<Integer> legalMoves(int id) {
-    List<Integer> out = new LinkedList<Integer>();
     SudokuCell cell = cells[id];
+    if(cell.done()) return Arrays.asList(new Integer[] { cell.get() });
+    
+    List<Integer> out = new LinkedList<Integer>();
     int row = cell.y();
     int col = cell.x();
-    
-    assert(!cell.done()) : "legalMoves called on finished cell";
-    
+        
     int sx = col/3;
     int sy = row/3;
     
@@ -67,21 +67,25 @@ public class SudokuState {
    * @return 
    */
   public SudokuCell selectOpenMRV(){
-    // num remaining values = {2,...,9}
-    LinkedList[] remainingVals = new LinkedList[8];
-    for (int i = 0 ; i < remainingVals.length ; i++)
-      remainingVals[i] = new LinkedList<Integer>();
+    // a cell for each number of remaining legal moves [0..9]
+    SudokuCell[] remainingVals = new SudokuCell[10];
+
+    // count remaining moves, put in bucket
     for (int i=0; i<TOTAL_CELLS; i++) {
-      int left = count(i);
-      if (left==1)
+      int left = legalMoves(i).size();
+      if(left == 1 && cells[i].done()) {
         continue;
-      else remainingVals[left-2].add(i);
-    }
-    for (int i = 0 ; i < remainingVals.length ; i ++)
-      if (remainingVals[i].size() > 0) {
-        int cellId = (Integer) remainingVals[i].get(0);
-        return cells[cellId];
       }
+      remainingVals[left] = cells[i];
+    }
+    // find first nonempty bucket and return that
+    for(int i=0; i<remainingVals.length; i++) {
+      SudokuCell cur = remainingVals[i];
+      if(cur != null) {
+        return cur;
+      }
+    }
+    print(System.err);
     throw new RuntimeException("did not find any open values");
   }
 
@@ -91,20 +95,10 @@ public class SudokuState {
     int minLeft = 10;
     // loop over total cells, find out who is open
     for(int i=0; i<TOTAL_CELLS; i++) {
-      int left = count(i);
-      if(left == 1) {
-        continue;
-      }
-      if(left < minLeft) {
-        minLeft = left;
-        min = i;
-      }
+      if(cells[i].done()) continue;
+      return cells[i];
     }
-        
-    assert(min != -1);
-    assert(minLeft <= 9 && minLeft >= 2);
-    
-    return cells[min];
+    throw new RuntimeException("Shouldn't ask for an open variable on a finished sudoku...");
   }
 
   /**
