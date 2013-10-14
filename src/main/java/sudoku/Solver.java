@@ -121,6 +121,6 @@ public class Solver {
     }
     
   debug = true;
-  SearchResult sr4 = backtrackingSearch(SudokuState.fromDefinition(Tokenizer.tokenize("data/puz-062.txt")), true, selectOpenMRV, justAC3);
+  SearchResult sr4 = backtrackingSearch(SudokuState.fromDefinition(Tokenizer.tokenize("data/puz-062.txt")), true, selectOpenMRV, new Inference[] { new AC3(), new NakedPairs()});
   }
 }

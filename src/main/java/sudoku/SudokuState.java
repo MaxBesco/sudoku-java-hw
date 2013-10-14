@@ -63,13 +63,9 @@ public class SudokuState {
     
     // look at all neighbors and build a list of remaining legal moves
     Set<Integer> found = new HashSet<Integer>();
-    for(int i=0; i<9; i++) {
-      SudokuCell[] neighbors = { get(i,row), get(col, i), get(sx*3 + i%3, sy*3 + i/3) };
-      for(SudokuCell neighbor : neighbors) {
-        if(neighbor.done()) {
-          found.add(neighbor.get());
-        }
-      }
+    for(SudokuCell neighbor : neighbors(id)) {
+      if(neighbor.done())
+        found.add(neighbor.get());
     }
     
     for(int i=1; i<=9; i++) {
