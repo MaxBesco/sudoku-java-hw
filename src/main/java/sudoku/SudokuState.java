@@ -32,6 +32,25 @@ public class SudokuState {
     return true;
   }
   
+  /** Returns the current cell as well... */
+  public Set<SudokuCell> neighbors(int index) {
+    List<SudokuCell> neighbors = new LinkedList<SudokuCell>();
+    SudokuCell cell = cells[index];
+    
+    int row = cell.y();
+    int col = cell.x();
+        
+    int sx = col/3;
+    int sy = row/3;
+    for(int i=0; i<9; i++) {
+      neighbors.add(get(i,row));
+      neighbors.add(get(col,i));
+      neighbors.add(get(sx*3 + i%3, sy*3 + i/3));
+    }
+    
+    return new HashSet<SudokuCell>(neighbors);
+  }
+  
   public List<Integer> legalMoves(int id) {
     SudokuCell cell = cells[id];
     if(cell.done()) return Arrays.asList(new Integer[] { cell.get() });
@@ -45,13 +64,9 @@ public class SudokuState {
     
     // look at all neighbors and build a list of remaining legal moves
     Set<Integer> found = new HashSet<Integer>();
-    for(int i=0; i<9; i++) {
-      SudokuCell[] neighbors = { get(i,row), get(col, i), get(sx*3 + i%3, sy*3 + i/3) };
-      for(SudokuCell neighbor : neighbors) {
-        if(neighbor.done()) {
-          found.add(neighbor.get());
-        }
-      }
+    for(SudokuCell neighbor : neighbors(id)) {
+      if(neighbor.done())
+        found.add(neighbor.get());
     }
     
     for(int i=1; i<=9; i++) {

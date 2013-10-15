@@ -23,6 +23,7 @@ public class Solver {
     }
   }
   
+  static boolean debug;
   static int guesses;
   
   public static SearchResult backtrackingSearch(SudokuState start, boolean first, Method getOpen, Inference[] inferenceMethods) 
@@ -34,16 +35,14 @@ public class Solver {
     try {
       if (inferenceMethods.length!=0) {
         while (true) {
-          //start.print(System.out);
           boolean changed = false;
-          for (int j = 0 ; j < inferenceMethods.length ; j++)
-            changed = changed || inferenceMethods[j].inferenceMethod(start);
+          for (Inference method : inferenceMethods) {
+            changed |= method.inferenceMethod(start);
+          }
           if (!changed) break;
         }
-        //System.out.println("Success!");
       }
     } catch (InconsistencyException e) {
-      //e.printStackTrace();
       assert(!first);
       return new Failure();
     }
@@ -61,6 +60,10 @@ public class Solver {
     List<Integer> domain = start.legalMoves(var.index);
     if(domain.isEmpty())
       return new Failure();
+    
+    if(debug && domain.size() > 1) {
+      start.print(System.out);
+    }
     
     guesses += domain.size() - 1;
     assert(domain.size() <= 9 && domain.size() > 0);
@@ -81,7 +84,7 @@ public class Solver {
     Method selectOpenVariable = SudokuState.class.getMethod("selectOpenVariable");
     Method selectOpenMRV = SudokuState.class.getMethod("selectOpenMRV");
     Inference[] justAC3 = {new AC3()};
-    Inference[] allInference = {new XWing()};
+    Inference[] allInference = {new AC3(), new NakedPairs()};
     System.out.println("Show the numbers of guesses made for each of the 16 instances in the above collection. Try both plain backtracking and backtacking with the MRV (minimum remaining values) heuristic. ");
     System.out.println("plain backtracking, mrv, ac-3-plain, ac3-mrv, allinf-plain, allinf-mrv");
     
