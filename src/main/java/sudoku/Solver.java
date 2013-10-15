@@ -43,6 +43,8 @@ public class Solver {
         //System.out.println("Success!");
       }
     } catch (InconsistencyException e) {
+      //e.printStackTrace();
+      assert(!first);
       return new Failure();
     }
     
@@ -79,7 +81,7 @@ public class Solver {
     Method selectOpenVariable = SudokuState.class.getMethod("selectOpenVariable");
     Method selectOpenMRV = SudokuState.class.getMethod("selectOpenMRV");
     Inference[] justAC3 = {new AC3()};
-    Inference[] allInference = {new AC3(), new XWing()};
+    Inference[] allInference = {new XWing()};
     System.out.println("Show the numbers of guesses made for each of the 16 instances in the above collection. Try both plain backtracking and backtacking with the MRV (minimum remaining values) heuristic. ");
     System.out.println("plain backtracking, mrv, ac-3-plain, ac3-mrv, allinf-plain, allinf-mrv");
     

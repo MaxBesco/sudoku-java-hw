@@ -27,26 +27,59 @@ public class XWing implements Inference {
   @Override
   public boolean inferenceMethod(SudokuState state) {
     boolean changed = false;
-    for (PairWithNum p : getAllExclusiveRowEntries(state)) {
+    List<PairWithNum> exclusiveRows = getAllExclusiveRowEntries(state);
+    System.out.println(exclusiveRows.size());
+    for (int i = 0 ; i < exclusiveRows.size() ; i++) {
+      PairWithNum p = exclusiveRows.get(i);
       int matchedNum = p.matchedNum;
       SudokuCell a = p.left;
       SudokuCell b = p.right;
-      for (PairWithNum pp : getAllExclusiveRowEntries(state)) {
-        if (!pp.equals(p) && pp.matchedNum == matchedNum) {
+      if (!a.inDomain(matchedNum) || !b.inDomain(matchedNum) || a.count()==1 || b.count()==1) 
+        continue;
+      List<PairWithNum> potentialMatches = getAllExclusiveRowEntries(state);
+      for (int j = 0 ; j < potentialMatches.size() ; j++ ) {
+        PairWithNum pp = potentialMatches.get(j);
+        if (!pp.equals(p) && pp.matchedNum == matchedNum && pp.left.inDomain(matchedNum) && pp.right.inDomain(matchedNum)
+                && pp.left.count() > 1 && pp.right.count() > 1) {
           // delete matchedNum from all of the other cells in their shared columns
+          System.out.println(String.format("XWing : (%d, %d) %s, (%d, %d) %s, (%d, %d) %s, (%d, %d) %s\t%d"
+                  , a.x(), a.y(), Integer.toBinaryString(a.domain)
+                  , b.x(), b.y(), Integer.toBinaryString(b.domain)
+                  , pp.left.x(), pp.left.y(), Integer.toBinaryString(pp.left.domain)
+                  , pp.right.x(), pp.right.y(), Integer.toBinaryString(pp.right.domain)
+                  , matchedNum
+                  ));
           int col1 = a.y();
           int col2 = b.y();
-          for (int r = 0 ; r < 9 ; r++) {
+          for (int r = 0 ; r < 9 ; r++) 
             if (r!=a.x() && r!=pp.left.x()) {
-              if (!changed)
-                changed = state.get(r, col1).inDomain(matchedNum) || state.get(r, col2).inDomain(matchedNum);
-              state.get(r, col1).remove(matchedNum);
-              state.get(r, col2).remove(matchedNum);
+              SudokuCell c = state.get(r, col1);
+              SudokuCell d = state.get(r, col2);
+              if (c.count() > 1) 
+                if (c.inDomain(matchedNum)) {
+                  System.out.println(String.format("(%d,%d) %s, (%d,%d) %s, (%d,%d) %s\t%d"
+                          , a.x(), a.y(), Integer.toBinaryString(a.domain)
+                          , b.x(), b.y(), Integer.toBinaryString(b.domain)
+                          , c.x(), c.y(), Integer.toBinaryString(c.domain)
+                          , matchedNum));
+                  c.remove(matchedNum);
+                  changed = true;
+                }
+              if (d.count() > 1) 
+                if (d.inDomain(matchedNum)) {
+                  System.out.println(String.format("(%d,%d) %s, (%d,%d) %s, (%d,%d) %s\t%d"
+                          , a.x(), a.y(), Integer.toBinaryString(a.domain)
+                          , b.x(), b.y(), Integer.toBinaryString(b.domain)
+                          , d.x(), d.y(), Integer.toBinaryString(d.domain)
+                          , matchedNum));
+                  d.remove(matchedNum);
+                  changed = true;
+                }
             }
-          }
         }
       }
     }
+    /*
     for (PairWithNum p : getAllExclusiveColEntries(state)) {
       int matchedNum = p.matchedNum;
       SudokuCell a = p.left;
@@ -67,6 +100,8 @@ public class XWing implements Inference {
         }
       }
     }
+    * */
+    state.print(System.out);
     return changed;
   }
   
