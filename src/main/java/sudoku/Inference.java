@@ -14,10 +14,11 @@ public interface Inference {
       }
       @Override
       public int hashCode(){
-        return (new Integer(left.index)).hashCode() ^ (new Integer(right.index)).hashCode();
+        return left.hashCode() ^ right.hashCode();
       }
       @Override
       public boolean equals(Object op){
+        assert(op instanceof Pair);
         return equals((Pair) op);
       }
       

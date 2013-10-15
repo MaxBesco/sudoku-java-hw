@@ -105,16 +105,20 @@ public class XWing implements Inference {
     return changed;
   }
   
-  public List<PairWithNum> getAllExclusiveRowEntries(SudokuState state) {
+  public static List<PairWithNum> getAllExclusiveRowEntries(SudokuState state) {
     List<PairWithNum> matchedPairs = new LinkedList<PairWithNum>();
     for (int row = 0 ; row < 9 ; row++) {
       for (int col = 0 ; col < 8 ; col++) {
         SudokuCell cell1 = state.get(row, col);
+        if(cell1.done()) continue;
         for (Integer i : cell1.getDomain()) {
           int numMatches = 0;
           SudokuCell cell2 = null;
           for (int matchedCol = col+1 ; matchedCol < 9 ; matchedCol++) {
             cell2 = state.get(row, matchedCol);
+            if(cell2.done()) {
+              continue;
+            }
             if (cell2.inDomain(i)) 
               numMatches++;
           }
@@ -126,7 +130,7 @@ public class XWing implements Inference {
     return matchedPairs;
   }
 
-    public List<PairWithNum> getAllExclusiveColEntries(SudokuState state) {
+  public List<PairWithNum> getAllExclusiveColEntries(SudokuState state) {
     List<PairWithNum> matchedPairs = new LinkedList<PairWithNum>();
     for (int col = 0 ; col < 9 ; col++) {
       for (int row = 0 ; row < 8 ; row++) {
@@ -147,4 +151,26 @@ public class XWing implements Inference {
     return matchedPairs;
   }
   
+  public static void main(String[] args) throws InconsistencyException {
+    SudokuState st = SudokuState.fromDefinition(new int[] {
+      1,0,0,0,0,0,5,6,9,
+      4,9,2,0,5,6,1,0,8,
+      0,5,6,1,0,9,2,4,0,
+      0,0,9,6,4,0,8,0,1,
+      0,6,4,0,1,0,0,0,0,
+      2,1,8,0,3,5,6,0,4,
+      0,4,0,5,0,0,0,1,6,
+      9,0,5,0,6,1,4,0,2,
+      6,2,1,0,0,0,0,0,5
+    });
+    
+    Inference rules = new AC3();
+    rules.inferenceMethod(st);
+    st.print(System.out);
+    
+    List<PairWithNum> pwn = getAllExclusiveRowEntries(st);
+    for(PairWithNum p : pwn) {
+      System.out.println("matched: " + p.matchedNum + " left:"+p.left +" right:"+p.right);
+    }
+  }
 }

@@ -99,7 +99,13 @@ public class SudokuCell {
     if(count() == 1) {
       return Integer.toString(invMask(this.domain));
     } else {
-      return "?";
+      StringBuilder sb = new StringBuilder();
+      sb.append('{');
+      for(int x : this.getDomain()) {
+        sb.append(x); sb.append(' ');
+      }
+      sb.append('}');
+      return sb.toString();
     }
   }
 }
