@@ -23,7 +23,7 @@ public class XWing implements Inference {
       List<PairWithNum> allMatchingPairs = new LinkedList<PairWithNum>();
       
       for (int row = 0 ; row < 9 ; row++)
-        allMatchingPairs.addAll(findMatchingPairs(findMatchingCells(Arrays.asList(getCellsAtRow(state, row)), i)));
+        allMatchingPairs.addAll(findMatchingPairs(getCellsContainingNumber(getCellsAtRow(state, row), i)));
       
       if (debug) {
         for (PairWithNum pair : allMatchingPairs)
@@ -38,9 +38,10 @@ public class XWing implements Inference {
         continue;
       
       for (PairWithNum pair : allMatchingPairs) {
-          
+        
         PairWithNum otherPair = getMatchedRow(state, pair);
- 
+        if (otherPair==null) continue;
+        
         if (debug){
            System.out.println(String.format("%d:%s, %d:%s, %d:%s, %d:%s \t%d", 
                    pair.left.index, Integer.toBinaryString(pair.left.domain)
@@ -51,39 +52,36 @@ public class XWing implements Inference {
                    ));
           }
         
-        if (otherPair==null)
-            continue;
-          else {
-            boolean changed = false;
-            for (SudokuCell cell : getCellsContainingNumber(getCellsAtCol(state, pair.left.x()), pair.matchedNum)) {
-              if (cell.index==pair.left.index || cell.index==otherPair.left.index)
-                continue;
-              if (cell.count()<2){
-                if (debug) System.out.println(cell.index);
-                throw new InconsistencyException();
-              }
-              cell.remove(pair.matchedNum);
-              if (debug)
-                System.out.println(String.format("Removed %d from cell %d. New domain is: %s"
-                        , pair.matchedNum, cell.index, Integer.toBinaryString(cell.domain)));
-              changed = true;
+          boolean changed = false;
+          for (SudokuCell cell : getCellsContainingNumber(getCellsAtCol(state, pair.left.x()), pair.matchedNum)) {
+            if (cell.index==pair.left.index || cell.index==otherPair.left.index)
+              continue;
+            if (cell.count()<2){
+              if (debug) System.out.println(cell.index);
+              throw new InconsistencyException();
             }
-            for (SudokuCell cell : getCellsContainingNumber(getCellsAtCol(state, pair.right.x()), pair.matchedNum)){
-              if (cell.index==pair.right.index || cell.index==otherPair.right.index)
-                continue;
-              if (cell.count()<2){
-                if (debug) System.out.println(cell.index);
-                throw new InconsistencyException();
-              }
-              cell.remove(pair.matchedNum);
-              if (debug)
-                System.out.println(String.format("Removed %d from cell %d. New domain is: %s"
-                        , pair.matchedNum, cell.index, Integer.toBinaryString(cell.domain)));
-              changed = true;
+            cell.remove(pair.matchedNum);
+            if (debug)
+              System.out.println(String.format("Removed %d from cell %d. New domain is: %s"
+                      , pair.matchedNum, cell.index, Integer.toBinaryString(cell.domain)));
+            changed = true;
+          }
+          for (SudokuCell cell : getCellsContainingNumber(getCellsAtCol(state, pair.right.x()), pair.matchedNum)){
+            if (cell.index==pair.right.index || cell.index==otherPair.right.index)
+              continue;
+            if (cell.count()<2){
+              if (debug) System.out.println(cell.index);
+              throw new InconsistencyException();
             }
-            if (changed) return true;
-        }
+            cell.remove(pair.matchedNum);
+            if (debug)
+              System.out.println(String.format("Removed %d from cell %d. New domain is: %s"
+                      , pair.matchedNum, cell.index, Integer.toBinaryString(cell.domain)));
+            changed = true;
+          }
+          if (changed) return true;
       }
+     
     }
     if (debug) System.out.println("no elimination");
     return false;
