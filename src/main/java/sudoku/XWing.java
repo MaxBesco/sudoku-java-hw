@@ -28,8 +28,8 @@ public class XWing implements Inference {
       if (debug) {
         for (PairWithNum pair : allMatchingPairs)
            System.out.println(String.format("%d:%s, %d:%s \t%d", 
-                   pair.left.index, Integer.toBinaryString(pair.left.domain)
-                   , pair.right.index, Integer.toBinaryString(pair.right.index)
+                   pair.left.index, pair.left.domain
+                   , pair.right.index, pair.right.index
                    , pair.matchedNum
                    ));
       }
@@ -44,10 +44,10 @@ public class XWing implements Inference {
         
         if (debug){
            System.out.println(String.format("%d:%s, %d:%s, %d:%s, %d:%s \t%d", 
-                   pair.left.index, Integer.toBinaryString(pair.left.domain)
-                   , pair.right.index, Integer.toBinaryString(pair.right.index)
-                   , otherPair.left.index, Integer.toBinaryString(otherPair.left.index)
-                   , otherPair.right.index, Integer.toBinaryString(otherPair.right.index)
+                   pair.left.index, pair.left
+                   , pair.right.index, pair.right
+                   , otherPair.left.index, otherPair.left
+                   , otherPair.right.index, otherPair.right
                    , pair.matchedNum
                    ));
           }
@@ -63,7 +63,7 @@ public class XWing implements Inference {
             cell.remove(pair.matchedNum);
             if (debug)
               System.out.println(String.format("Removed %d from cell %d. New domain is: %s"
-                      , pair.matchedNum, cell.index, Integer.toBinaryString(cell.domain)));
+                      , pair.matchedNum, cell.index, cell));
             changed = true;
           }
           for (SudokuCell cell : getCellsContainingNumber(getCellsAtCol(state, pair.right.x()), pair.matchedNum)){
@@ -76,7 +76,7 @@ public class XWing implements Inference {
             cell.remove(pair.matchedNum);
             if (debug)
               System.out.println(String.format("Removed %d from cell %d. New domain is: %s"
-                      , pair.matchedNum, cell.index, Integer.toBinaryString(cell.domain)));
+                      , pair.matchedNum, cell.index, cell));
             changed = true;
           }
           if (changed) return true;
