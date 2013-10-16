@@ -3,6 +3,7 @@ package sudoku;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import static sudoku.Inference.debug;
 
 public class XWing implements Inference {
   
@@ -17,23 +18,60 @@ public class XWing implements Inference {
   @Override
   public boolean inferenceMethod(SudokuState state) throws InconsistencyException {
     for (int i = 1 ; i <= 9 ; i ++){
-      List<SudokuCell> allMatchingPairsByRow = new LinkedList<SudokuCell>();
+      
+      List<PairWithNum> allMatchingPairs = new LinkedList<PairWithNum>();
+      
       for (int row = 0 ; row < 9 ; row++)
-        allMatchingPairsByRow.addAll(findMatchingCells(Arrays.asList(getCellsAtRow(state, row)), i));
-      List<PairWithNum> allMatchingPairs = findMatchingPairs(allMatchingPairsByRow);
+        allMatchingPairs.addAll(findMatchingPairs(findMatchingCells(Arrays.asList(getCellsAtRow(state, row)), i)));
+      
+      if (debug) {
+        for (PairWithNum pair : allMatchingPairs)
+           System.out.println(String.format("%d:%s, %d:%s \t%d", 
+                   pair.left.index, Integer.toBinaryString(pair.left.domain)
+                   , pair.right.index, Integer.toBinaryString(pair.right.index)
+                   , pair.matchedNum
+                   ));
+      }
       if (allMatchingPairs.size() > 0) {
         for (PairWithNum pair : allMatchingPairs) {
           PairWithNum otherPair = getMatchedRow(state, pair);
+          if (debug){
+           System.out.println(String.format("%d:%s, %d:%s, %d:%s, %d:%s \t%d", 
+                   pair.left.index, Integer.toBinaryString(pair.left.domain)
+                   , pair.right.index, Integer.toBinaryString(pair.right.index)
+                   , otherPair.left.index, Integer.toBinaryString(otherPair.left.index)
+                   , otherPair.right.index, Integer.toBinaryString(otherPair.right.index)
+                   , pair.matchedNum
+                   ));
+          }
           if (otherPair==null)
             continue;
           else {
             boolean changed = false;
             for (SudokuCell cell : getCellsContainingNumber(getCellsAtCol(state, pair.left.x()), pair.matchedNum)) {
+              if (cell.index==pair.left.index || cell.index==otherPair.left.index)
+                continue;
+              if (cell.count()<2){
+                if (debug) System.out.println(cell.index);
+                throw new InconsistencyException();
+              }
               cell.remove(pair.matchedNum);
+              if (debug)
+                System.out.println(String.format("Removed %d from cell %d. New domain is: %s"
+                        , pair.matchedNum, cell.index, Integer.toBinaryString(cell.domain)));
               changed = true;
             }
             for (SudokuCell cell : getCellsContainingNumber(getCellsAtCol(state, pair.right.x()), pair.matchedNum)){
+              if (cell.index==pair.right.index || cell.index==otherPair.right.index)
+                continue;
+              if (cell.count()<2){
+                if (debug) System.out.println(cell.index);
+                throw new InconsistencyException();
+              }
               cell.remove(pair.matchedNum);
+              if (debug)
+                System.out.println(String.format("Removed %d from cell %d. New domain is: %s"
+                        , pair.matchedNum, cell.index, Integer.toBinaryString(cell.domain)));
               changed = true;
             }
             if (changed) return true;
@@ -41,6 +79,7 @@ public class XWing implements Inference {
         }
       }
     }
+    if (debug) System.out.println("no elimination");
     return false;
   }
   
@@ -127,31 +166,8 @@ public class XWing implements Inference {
     rules.inferenceMethod(st);
     st.print(System.out);
     
-//    List<PairWithNum> pwn = getAllExclusiveRowEntries(st);
-//    for(PairWithNum p : pwn) {
-//      System.out.println("matched: " + p.matchedNum + " left:"+p.left +" right:"+p.right);
-//    }
-    
-    System.out.println("XWing");
     (new XWing()).inferenceMethod(st);
-    
-    try{
-      System.out.println("AC3");
-      (new AC3()).inferenceMethod(st);
-    }catch (InconsistencyException ie) {
-      st.print(System.out);
-    }
-    
-    System.out.println("XWing");
-    (new XWing()).inferenceMethod(st);
-    
-        try{
-      System.out.println("AC3");
-      (new AC3()).inferenceMethod(st);
-    }catch (InconsistencyException ie) {
-      st.print(System.out);
-    }
-    
-  }
 
+    st.print(System.out);
+  }
 }
