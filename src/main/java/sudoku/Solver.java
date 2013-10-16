@@ -62,7 +62,7 @@ public class Solver {
       return new Failure();
     
     if(debug && domain.size() > 1) {
-      start.print(System.out);
+      start.printSimple(System.out);
     }
     
     guesses += domain.size() - 1;

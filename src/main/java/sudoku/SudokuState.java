@@ -222,4 +222,16 @@ public class SudokuState {
     }
     out.println();
   }
+  
+  void printSimple(PrintStream out) {
+    for (int i = 0; i < cells.length; i++) {
+      out.print((i % 9 == 0) ? '\n' : ' ');
+      if(cells[i].done()) {
+        out.print(cells[i].get());
+      } else {
+        out.print("?");
+      }
+    }
+    out.println();
+  }
 }
