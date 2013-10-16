@@ -17,6 +17,7 @@ public class XWing implements Inference {
 
   @Override
   public boolean inferenceMethod(SudokuState state) throws InconsistencyException {
+    
     for (int i = 1 ; i <= 9 ; i ++){
       
       List<PairWithNum> allMatchingPairs = new LinkedList<PairWithNum>();
@@ -32,10 +33,15 @@ public class XWing implements Inference {
                    , pair.matchedNum
                    ));
       }
-      if (allMatchingPairs.size() > 0) {
-        for (PairWithNum pair : allMatchingPairs) {
-          PairWithNum otherPair = getMatchedRow(state, pair);
-          if (debug){
+      
+      if (allMatchingPairs.isEmpty())
+        continue;
+      
+      for (PairWithNum pair : allMatchingPairs) {
+          
+        PairWithNum otherPair = getMatchedRow(state, pair);
+ 
+        if (debug){
            System.out.println(String.format("%d:%s, %d:%s, %d:%s, %d:%s \t%d", 
                    pair.left.index, Integer.toBinaryString(pair.left.domain)
                    , pair.right.index, Integer.toBinaryString(pair.right.index)
@@ -44,7 +50,8 @@ public class XWing implements Inference {
                    , pair.matchedNum
                    ));
           }
-          if (otherPair==null)
+        
+        if (otherPair==null)
             continue;
           else {
             boolean changed = false;
@@ -75,7 +82,6 @@ public class XWing implements Inference {
               changed = true;
             }
             if (changed) return true;
-          }
         }
       }
     }
@@ -88,9 +94,8 @@ public class XWing implements Inference {
       if (col==pair.left.x())
         continue;
       else {
-        List<SudokuCell> cells = findMatchingCells(Arrays.asList(getCellsAtCol(state, col)), pair.matchedNum);
-        if (cells.size()==2)
-          return new PairWithNum(cells.get(0), cells.get(1), pair.matchedNum);
+        List<SudokuCell> cells = getCellsContainingNumber(getCellsAtCol(state, col), pair.matchedNum);
+        assert(false);
       }
     }
     return null;
@@ -101,9 +106,16 @@ public class XWing implements Inference {
       if (row==pair.left.y())
         continue;
       else {
-        List<SudokuCell> cells = findMatchingCells(Arrays.asList(getCellsAtRow(state, row)), pair.matchedNum);
-        if (cells.size()==2)
-          return new PairWithNum(cells.get(0), cells.get(1), pair.matchedNum);
+        List<SudokuCell> cells = getCellsContainingNumber(getCellsAtRow(state, row), pair.matchedNum);
+        if (cells.size()!=2)
+          continue;
+        SudokuCell a = cells.get(0);
+        SudokuCell b = cells.get(1);
+        assert(a!=pair.left);
+        assert(a.x() < b.x());
+        assert(pair.left.x() < pair.right.x());
+        if (a.x()==pair.left.x() && b.x()==pair.right.x())
+          return new PairWithNum(a, b, pair.matchedNum);
       }
     } 
     return null;
@@ -112,22 +124,15 @@ public class XWing implements Inference {
   public List<PairWithNum> findMatchingPairs(List<SudokuCell> cellsAtRowOrCol) {
     List<PairWithNum> retval = new LinkedList<PairWithNum>();
     for (int i = 1 ; i <= 9 ; i++) {
-      List<SudokuCell> cells = findMatchingCells(cellsAtRowOrCol, i);
+      List<SudokuCell> cells = getCellsContainingNumber(cellsAtRowOrCol, i);
       if (cells.size()==2)
         retval.add(new PairWithNum(cells.get(0), cells.get(1), i));
     }
     return retval;
   }
   
-  public List<SudokuCell> findMatchingCells(List<SudokuCell> cellsAtRowOrCol, int num) {
-      List<SudokuCell> retval = new LinkedList<SudokuCell>();
-      for (SudokuCell cell : cellsAtRowOrCol)
-        if (cell.inDomain(num))
-          retval.add(cell);
-      return retval;
-  }
   
-  public List<SudokuCell> getCellsContainingNumber(SudokuCell[] cells, int num) {
+  public List<SudokuCell> getCellsContainingNumber(List<SudokuCell> cells, int num) {
     List<SudokuCell> retval = new LinkedList<SudokuCell>();
     for (SudokuCell cell : cells)
       if (cell.inDomain(num))
@@ -135,18 +140,18 @@ public class XWing implements Inference {
     return retval;
   }
   
-  public SudokuCell[] getCellsAtRow(SudokuState state, int row) {
+  public List<SudokuCell> getCellsAtRow(SudokuState state, int row) {
     SudokuCell[] entries = new SudokuCell[9];
     for (int col = 0 ; col < 9 ; col++)
       entries[col] = state.get(col, row);
-    return entries;
+    return Arrays.asList(entries);
   }
   
-  public SudokuCell[] getCellsAtCol(SudokuState state, int col) {
+  public List<SudokuCell> getCellsAtCol(SudokuState state, int col) {
     SudokuCell[] entries = new SudokuCell[9];
     for (int row = 0 ; row < 9 ; row++)
       entries[row] = state.get(col, row);
-    return entries;
+    return Arrays.asList(entries);
   }
 
   public static void main(String[] args) throws InconsistencyException {
