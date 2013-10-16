@@ -11,6 +11,7 @@ import java.util.Set;
  * 
  */
 public class AC3 implements Inference {
+    
   @Override
   public boolean inferenceMethod(SudokuState state) throws InconsistencyException {
     // takes in a sudokustate, applies the ac3 inference method and returns
@@ -51,6 +52,8 @@ public class AC3 implements Inference {
         arcQ.addLast(p);
       }
     }
+    if (debug)
+      state.print(System.out);
     return changed;
   }
   

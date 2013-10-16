@@ -1,156 +1,115 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package sudoku;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- *
- * 
- */
 public class XWing implements Inference {
   
-  public static class PairWithNum extends Pair {
+  public static class PairWithNum extends Pair{
     int matchedNum;
     public PairWithNum(SudokuCell l, SudokuCell r, int num) {
       super(l, r);
       this.matchedNum = num;
     }
   }
-  
-  private Integer num = -1;
-  
+
   @Override
-  public boolean inferenceMethod(SudokuState state) {
-    boolean changed = false;
-    List<PairWithNum> exclusiveRows = getAllExclusiveRowEntries(state);
-    System.out.println(exclusiveRows.size());
-    for (int i = 0 ; i < exclusiveRows.size() ; i++) {
-      PairWithNum p = exclusiveRows.get(i);
-      int matchedNum = p.matchedNum;
-      SudokuCell a = p.left;
-      SudokuCell b = p.right;
-      if (!a.inDomain(matchedNum) || !b.inDomain(matchedNum) || a.count()==1 || b.count()==1) 
-        continue;
-      List<PairWithNum> potentialMatches = getAllExclusiveRowEntries(state);
-      for (int j = 0 ; j < potentialMatches.size() ; j++ ) {
-        PairWithNum pp = potentialMatches.get(j);
-        if (!pp.equals(p) && pp.matchedNum == matchedNum && pp.left.inDomain(matchedNum) && pp.right.inDomain(matchedNum)
-                && pp.left.count() > 1 && pp.right.count() > 1) {
-          // delete matchedNum from all of the other cells in their shared columns
-          System.out.println(String.format("XWing : (%d, %d) %s, (%d, %d) %s, (%d, %d) %s, (%d, %d) %s\t%d"
-                  , a.x(), a.y(), Integer.toBinaryString(a.domain)
-                  , b.x(), b.y(), Integer.toBinaryString(b.domain)
-                  , pp.left.x(), pp.left.y(), Integer.toBinaryString(pp.left.domain)
-                  , pp.right.x(), pp.right.y(), Integer.toBinaryString(pp.right.domain)
-                  , matchedNum
-                  ));
-          int col1 = a.y();
-          int col2 = b.y();
-          for (int r = 0 ; r < 9 ; r++) 
-            if (r!=a.x() && r!=pp.left.x()) {
-              SudokuCell c = state.get(r, col1);
-              SudokuCell d = state.get(r, col2);
-              if (c.count() > 1) 
-                if (c.inDomain(matchedNum)) {
-                  System.out.println(String.format("(%d,%d) %s, (%d,%d) %s, (%d,%d) %s\t%d"
-                          , a.x(), a.y(), Integer.toBinaryString(a.domain)
-                          , b.x(), b.y(), Integer.toBinaryString(b.domain)
-                          , c.x(), c.y(), Integer.toBinaryString(c.domain)
-                          , matchedNum));
-                  c.remove(matchedNum);
-                  changed = true;
-                }
-              if (d.count() > 1) 
-                if (d.inDomain(matchedNum)) {
-                  System.out.println(String.format("(%d,%d) %s, (%d,%d) %s, (%d,%d) %s\t%d"
-                          , a.x(), a.y(), Integer.toBinaryString(a.domain)
-                          , b.x(), b.y(), Integer.toBinaryString(b.domain)
-                          , d.x(), d.y(), Integer.toBinaryString(d.domain)
-                          , matchedNum));
-                  d.remove(matchedNum);
-                  changed = true;
-                }
+  public boolean inferenceMethod(SudokuState state) throws InconsistencyException {
+    for (int i = 1 ; i <= 9 ; i ++){
+      List<SudokuCell> allMatchingPairsByRow = new LinkedList<SudokuCell>();
+      for (int row = 0 ; row < 9 ; row++)
+        allMatchingPairsByRow.addAll(findMatchingCells(Arrays.asList(getCellsAtRow(state, row)), i));
+      List<PairWithNum> allMatchingPairs = findMatchingPairs(allMatchingPairsByRow);
+      if (allMatchingPairs.size() > 0) {
+        for (PairWithNum pair : allMatchingPairs) {
+          PairWithNum otherPair = getMatchedRow(state, pair);
+          if (otherPair==null)
+            continue;
+          else {
+            boolean changed = false;
+            for (SudokuCell cell : getCellsContainingNumber(getCellsAtCol(state, pair.left.x()), pair.matchedNum)) {
+              cell.remove(pair.matchedNum);
+              changed = true;
             }
-        }
-      }
-    }
-    /*
-    for (PairWithNum p : getAllExclusiveColEntries(state)) {
-      int matchedNum = p.matchedNum;
-      SudokuCell a = p.left;
-      SudokuCell b = p.right;
-      for (PairWithNum pp : getAllExclusiveRowEntries(state)) {
-        if (!pp.equals(p) && pp.matchedNum == matchedNum) {
-          // delete matchedNum from all of the other cells in their shared columns
-          int row1 = a.x();
-          int row2 = b.x();
-          for (int c = 0 ; c < 9 ; c++) {
-            if (c!=a.y() && c!=pp.left.y()) {
-              if (!changed)
-                changed = state.get(row1, c).inDomain(matchedNum) || state.get(row2, c).inDomain(matchedNum);
-              state.get(row2, c).remove(matchedNum);
-              state.get(row2, c).remove(matchedNum);
+            for (SudokuCell cell : getCellsContainingNumber(getCellsAtCol(state, pair.right.x()), pair.matchedNum)){
+              cell.remove(pair.matchedNum);
+              changed = true;
             }
+            if (changed) return true;
           }
         }
       }
     }
-    * */
-    state.print(System.out);
-    return changed;
+    return false;
   }
   
-  public static List<PairWithNum> getAllExclusiveRowEntries(SudokuState state) {
-    List<PairWithNum> matchedPairs = new LinkedList<PairWithNum>();
-    for (int row = 0 ; row < 9 ; row++) {
-      for (int col = 0 ; col < 8 ; col++) {
-        SudokuCell cell1 = state.get(row, col);
-        if(cell1.done()) continue;
-        for (Integer i : cell1.getDomain()) {
-          int numMatches = 0;
-          SudokuCell cell2 = null;
-          for (int matchedCol = col+1 ; matchedCol < 9 ; matchedCol++) {
-            cell2 = state.get(row, matchedCol);
-            if(cell2.done()) {
-              continue;
-            }
-            if (cell2.inDomain(i)) 
-              numMatches++;
-          }
-          if (numMatches==1)
-            matchedPairs.add(new PairWithNum(cell1, cell2, i));
-        }
+  public PairWithNum getMatchedCol(SudokuState state, PairWithNum pair) {
+    for (int col = 0 ; col < 9 ; col++){
+      if (col==pair.left.x())
+        continue;
+      else {
+        List<SudokuCell> cells = findMatchingCells(Arrays.asList(getCellsAtCol(state, col)), pair.matchedNum);
+        if (cells.size()==2)
+          return new PairWithNum(cells.get(0), cells.get(1), pair.matchedNum);
       }
     }
-    return matchedPairs;
+    return null;
+  }
+  
+  public PairWithNum getMatchedRow(SudokuState state, PairWithNum pair) {
+    for (int row = 0 ; row < 9 ; row++) {
+      if (row==pair.left.y())
+        continue;
+      else {
+        List<SudokuCell> cells = findMatchingCells(Arrays.asList(getCellsAtRow(state, row)), pair.matchedNum);
+        if (cells.size()==2)
+          return new PairWithNum(cells.get(0), cells.get(1), pair.matchedNum);
+      }
+    } 
+    return null;
+  }
+  
+  public List<PairWithNum> findMatchingPairs(List<SudokuCell> cellsAtRowOrCol) {
+    List<PairWithNum> retval = new LinkedList<PairWithNum>();
+    for (int i = 1 ; i <= 9 ; i++) {
+      List<SudokuCell> cells = findMatchingCells(cellsAtRowOrCol, i);
+      if (cells.size()==2)
+        retval.add(new PairWithNum(cells.get(0), cells.get(1), i));
+    }
+    return retval;
+  }
+  
+  public List<SudokuCell> findMatchingCells(List<SudokuCell> cellsAtRowOrCol, int num) {
+      List<SudokuCell> retval = new LinkedList<SudokuCell>();
+      for (SudokuCell cell : cellsAtRowOrCol)
+        if (cell.inDomain(num))
+          retval.add(cell);
+      return retval;
+  }
+  
+  public List<SudokuCell> getCellsContainingNumber(SudokuCell[] cells, int num) {
+    List<SudokuCell> retval = new LinkedList<SudokuCell>();
+    for (SudokuCell cell : cells)
+      if (cell.inDomain(num))
+        retval.add(cell);
+    return retval;
+  }
+  
+  public SudokuCell[] getCellsAtRow(SudokuState state, int row) {
+    SudokuCell[] entries = new SudokuCell[9];
+    for (int col = 0 ; col < 9 ; col++)
+      entries[col] = state.get(col, row);
+    return entries;
+  }
+  
+  public SudokuCell[] getCellsAtCol(SudokuState state, int col) {
+    SudokuCell[] entries = new SudokuCell[9];
+    for (int row = 0 ; row < 9 ; row++)
+      entries[row] = state.get(col, row);
+    return entries;
   }
 
-  public List<PairWithNum> getAllExclusiveColEntries(SudokuState state) {
-    List<PairWithNum> matchedPairs = new LinkedList<PairWithNum>();
-    for (int col = 0 ; col < 9 ; col++) {
-      for (int row = 0 ; row < 8 ; row++) {
-        SudokuCell cell1 = state.get(row, col);
-        for (Integer i : cell1.getDomain()) {
-          int numMatches = 0;
-          SudokuCell cell2 = null;
-          for (int matchedRow = row+1 ; matchedRow < 9 ; matchedRow++) {
-            cell2 = state.get(matchedRow, col);
-            if (cell2.inDomain(i)) 
-              numMatches++;
-          }
-          if (numMatches==1)
-            matchedPairs.add(new PairWithNum(cell1, cell2, i));
-        }
-      }
-    }
-    return matchedPairs;
-  }
-  
   public static void main(String[] args) throws InconsistencyException {
     SudokuState st = SudokuState.fromDefinition(new int[] {
       1,0,0,0,0,0,5,6,9,
@@ -168,9 +127,31 @@ public class XWing implements Inference {
     rules.inferenceMethod(st);
     st.print(System.out);
     
-    List<PairWithNum> pwn = getAllExclusiveRowEntries(st);
-    for(PairWithNum p : pwn) {
-      System.out.println("matched: " + p.matchedNum + " left:"+p.left +" right:"+p.right);
+//    List<PairWithNum> pwn = getAllExclusiveRowEntries(st);
+//    for(PairWithNum p : pwn) {
+//      System.out.println("matched: " + p.matchedNum + " left:"+p.left +" right:"+p.right);
+//    }
+    
+    System.out.println("XWing");
+    (new XWing()).inferenceMethod(st);
+    
+    try{
+      System.out.println("AC3");
+      (new AC3()).inferenceMethod(st);
+    }catch (InconsistencyException ie) {
+      st.print(System.out);
     }
+    
+    System.out.println("XWing");
+    (new XWing()).inferenceMethod(st);
+    
+        try{
+      System.out.println("AC3");
+      (new AC3()).inferenceMethod(st);
+    }catch (InconsistencyException ie) {
+      st.print(System.out);
+    }
+    
   }
+
 }

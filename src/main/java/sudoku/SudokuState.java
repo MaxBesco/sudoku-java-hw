@@ -217,8 +217,8 @@ public class SudokuState {
 
   void print(PrintStream out) {
     for (int i = 0; i < cells.length; i++) {
-      out.print((i % 9 == 0) ? '\n' : ' ');
-      out.print(cells[i]);
+      out.print((i % 9 == 0) ? '\n' : '\t');
+      out.print(""+i+":"+cells[i]);
     }
     out.println();
   }

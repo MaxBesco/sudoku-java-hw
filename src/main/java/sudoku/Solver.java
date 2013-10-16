@@ -43,6 +43,7 @@ public class Solver {
         }
       }
     } catch (InconsistencyException e) {
+      e.printStackTrace();
       assert(!first);
       return new Failure();
     }
