@@ -18,71 +18,70 @@ public class XWing implements Inference {
   @Override
   public boolean inferenceMethod(SudokuState state) throws InconsistencyException {
     
+    List<PairWithNum> allMatchingPairs = new LinkedList<PairWithNum>();
     for (int i = 1 ; i <= 9 ; i ++){
-      
-      List<PairWithNum> allMatchingPairs = new LinkedList<PairWithNum>();
-      
       for (int row = 0 ; row < 9 ; row++)
-        allMatchingPairs.addAll(findMatchingPairs(getCellsContainingNumber(getCellsAtRow(state, row), i)));
-      
-      if (debug) {
-        for (PairWithNum pair : allMatchingPairs)
-           System.out.println(String.format("%d:%s, %d:%s \t%d", 
-                   pair.left.index, pair.left
-                   , pair.right.index, pair.right
-                   , pair.matchedNum
-                   ));
-      }
-      
-      if (allMatchingPairs.isEmpty())
-        continue;
-      
-      for (PairWithNum pair : allMatchingPairs) {
-        
-        PairWithNum otherPair = getMatchedRow(state, pair);
-        if (otherPair==null) continue;
-        
-        if (debug){
-           System.out.println(String.format("%d:%s, %d:%s, %d:%s, %d:%s \t%d", 
-                   pair.left.index, pair.left
-                   , pair.right.index, pair.right
-                   , otherPair.left.index, otherPair.left
-                   , otherPair.right.index, otherPair.right
-                   , pair.matchedNum
-                   ));
-          }
-        
-          boolean changed = false;
-          for (SudokuCell cell : getCellsContainingNumber(getCellsAtCol(state, pair.left.x()), pair.matchedNum)) {
-            if (cell.index==pair.left.index || cell.index==otherPair.left.index)
-              continue;
-            if (cell.count()<2){
-              if (debug) System.out.println(cell.index);
-              throw new InconsistencyException();
-            }
-            cell.remove(pair.matchedNum);
-            if (debug)
-              System.out.println(String.format("Removed %d from cell %d. New domain is: %s"
-                      , pair.matchedNum, cell.index, cell));
-            changed = true;
-          }
-          for (SudokuCell cell : getCellsContainingNumber(getCellsAtCol(state, pair.right.x()), pair.matchedNum)){
-            if (cell.index==pair.right.index || cell.index==otherPair.right.index)
-              continue;
-            if (cell.count()<2){
-              if (debug) System.out.println(cell.index);
-              throw new InconsistencyException();
-            }
-            cell.remove(pair.matchedNum);
-            if (debug)
-              System.out.println(String.format("Removed %d from cell %d. New domain is: %s"
-                      , pair.matchedNum, cell.index, cell));
-            changed = true;
-          }
-          if (changed) return true;
-      }
-     
+        allMatchingPairs.addAll(findMatchingPairs(getCellsContainingNumber(getCellsAtRow(state, row), i), i)); 
     }
+    
+    if (debug) {
+      System.out.println("FIND ALL ROWS");
+      for (PairWithNum pair : allMatchingPairs)
+         System.out.println(String.format("%d:%s, %d:%s \t%d", 
+                 pair.left.index, pair.left
+                 , pair.right.index, pair.right
+                 , pair.matchedNum
+                 ));
+    }
+
+    if (allMatchingPairs.isEmpty())
+      return false;
+
+    for (PairWithNum pair : allMatchingPairs) {
+
+      PairWithNum otherPair = getMatchedRow(state, pair);
+      if (otherPair==null) continue;
+
+      if (debug){
+         System.out.println(String.format("%d:%s, %d:%s, %d:%s, %d:%s \t%d", 
+                 pair.left.index, pair.left
+                 , pair.right.index, pair.right
+                 , otherPair.left.index, otherPair.left
+                 , otherPair.right.index, otherPair.right
+                 , pair.matchedNum
+                 ));
+        }
+
+        boolean changed = false;
+        for (SudokuCell cell : getCellsContainingNumber(getCellsAtCol(state, pair.left.x()), pair.matchedNum)) {
+          if (cell.index==pair.left.index || cell.index==otherPair.left.index)
+            continue;
+          if (cell.count()<2){
+            if (debug) System.out.println(cell.index);
+            throw new InconsistencyException();
+          }
+          cell.remove(pair.matchedNum);
+          if (debug)
+            System.out.println(String.format("Removed %d from cell %d. New domain is: %s"
+                    , pair.matchedNum, cell.index, cell));
+          changed = true;
+        }
+        for (SudokuCell cell : getCellsContainingNumber(getCellsAtCol(state, pair.right.x()), pair.matchedNum)){
+          if (cell.index==pair.right.index || cell.index==otherPair.right.index)
+            continue;
+          if (cell.count()<2){
+            if (debug) System.out.println(cell.index);
+            throw new InconsistencyException();
+          }
+          cell.remove(pair.matchedNum);
+          if (debug)
+            System.out.println(String.format("Removed %d from cell %d. New domain is: %s"
+                    , pair.matchedNum, cell.index, cell));
+          changed = true;
+        }
+        if (changed) return true;
+    }
+
     if (debug) System.out.println("no elimination");
     return false;
   }
@@ -119,13 +118,11 @@ public class XWing implements Inference {
     return null;
   }
   
-  public List<PairWithNum> findMatchingPairs(List<SudokuCell> cellsAtRowOrCol) {
+  public List<PairWithNum> findMatchingPairs(List<SudokuCell> cellsAtRowOrCol, int val) {
     List<PairWithNum> retval = new LinkedList<PairWithNum>();
-    for (int i = 1 ; i <= 9 ; i++) {
-      List<SudokuCell> cells = getCellsContainingNumber(cellsAtRowOrCol, i);
-      if (cells.size()==2)
-        retval.add(new PairWithNum(cells.get(0), cells.get(1), i));
-    }
+    List<SudokuCell> cells = getCellsContainingNumber(cellsAtRowOrCol, val);
+    if (cells.size()==2)
+      retval.add(new PairWithNum(cells.get(0), cells.get(1), val));
     return retval;
   }
   

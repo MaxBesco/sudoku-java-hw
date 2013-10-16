@@ -5,7 +5,7 @@ package sudoku;
  * 
  */
 public interface Inference {
-    public boolean debug = true;
+    public boolean debug = false;
   
     public static class Pair {
       public SudokuCell left;
