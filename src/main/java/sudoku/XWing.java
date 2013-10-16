@@ -28,8 +28,8 @@ public class XWing implements Inference {
       if (debug) {
         for (PairWithNum pair : allMatchingPairs)
            System.out.println(String.format("%d:%s, %d:%s \t%d", 
-                   pair.left.index, pair.left.domain
-                   , pair.right.index, pair.right.index
+                   pair.left.index, pair.left
+                   , pair.right.index, pair.right
                    , pair.matchedNum
                    ));
       }
