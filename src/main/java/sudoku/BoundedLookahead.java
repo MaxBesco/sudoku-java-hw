@@ -12,8 +12,6 @@ package sudoku;
  */
 public class BoundedLookahead implements Inference {
   
-  public int k = 1;
-
   @Override
   public boolean inferenceMethod(SudokuState state) throws InconsistencyException {
     // picks a guess and sees if any of those guesses will lead to a contradiction
@@ -21,7 +19,6 @@ public class BoundedLookahead implements Inference {
     for (SudokuCell cell : state.cells)
       if (cell.count() > 1) {
         for (Integer i : cell.getDomain()) {
-          for (int j = 0 ; j < k ; j++) {
             SudokuState copy = state.set(cell.index, i);
             try{
               (new AC3()).inferenceMethod(copy);
@@ -34,7 +31,6 @@ public class BoundedLookahead implements Inference {
               return true;
             }
           }
-        }
       }
     return false;
   }
