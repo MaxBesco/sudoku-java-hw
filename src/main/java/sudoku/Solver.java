@@ -108,7 +108,7 @@ public class Solver {
       assert(sr4 instanceof Success);
       assert(sr5 instanceof Success);
       assert(sr6 instanceof Success);
-      System.out.println(String.format("%s\t%d,%d,%d,%d,%d,%d"
+      System.out.println(String.format("%s & %d & %d & %d & %d & %d & %d"
               , file.getName()
               , ((Success) sr1).numGuesses
               , ((Success) sr2).numGuesses
